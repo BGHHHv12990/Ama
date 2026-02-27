@@ -468,3 +468,50 @@ def run_batch(platform, lines):
             params = obj.get("params", {})
         else:
             parts = line.split()
+            if not parts:
+                continue
+            method = parts[0]
+            params = {}
+            if method == "create_session":
+                params = {"user_ref": parts[1] if len(parts) >= 2 else get_user_ref_from_config(), "caller": caller}
+            elif method == "validate_code":
+                params = {"code": " ".join(parts[1:]) if len(parts) >= 2 else "def x(): pass"}
+            elif method == "get_session" and len(parts) >= 2:
+                params = {"session_id": parts[1]}
+            elif method == "close_session" and len(parts) >= 2:
+                params = {"session_id": parts[1], "caller": caller}
+            elif method == "get_completions" and len(parts) >= 3:
+                params = {"session_id": parts[1], "prefix": parts[2], "line_context": parts[2], "language": "py", "max_n": 8}
+            elif method == "get_suggestions" and len(parts) >= 3:
+                params = {"session_id": parts[1], "query": parts[2], "kind": 0, "max_n": 8}
+            elif method == "update_context" and len(parts) >= 3:
+                params = {"session_id": parts[1], "context": " ".join(parts[2:]), "caller": caller}
+            elif method == "stats" or method == "config":
+                params = {}
+        r = handle_ariva_request(platform, method, params)
+        print(json.dumps(r))
+
+
+def print_validation_human(r: dict) -> None:
+    """Print validation result in human-readable form."""
+    if "error" in r:
+        print("Error:", r["error"], file=sys.stderr)
+        return
+    valid = r.get("valid", False)
+    errors = r.get("errors", [])
+    print("Valid:" if valid else "Invalid:")
+    if errors:
+        print(format_validation_errors(errors))
+    else:
+        print("  (no errors)")
+
+
+# -----------------------------------------------------------------------------
+# Reference (inline docs)
+# -----------------------------------------------------------------------------
+AMA_REFERENCE = """
+Ama CLI reference
+=================
+
+Commands:
+  create-session [--user-ref REF]   Create session (user_ref from config if omitted).
