@@ -45,3 +45,50 @@ from contracts.AriVa import (
 
 # Default config path (optional JSON: {"user_ref": "...", "caller_override": "0x..."})
 AMA_CONFIG_ENV = "AMA_CONFIG"
+AMA_CONFIG_DEFAULT = "ama_config.json"
+
+
+def load_ama_config() -> dict:
+    path = os.environ.get(AMA_CONFIG_ENV) or AMA_CONFIG_DEFAULT
+    p = Path(path)
+    if not p.is_file():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8", errors="replace"))
+    except Exception:
+        return {}
+
+
+def get_caller_from_config() -> str:
+    cfg = load_ama_config()
+    return cfg.get("caller_override") or ARIVA_COORDINATOR
+
+
+def get_user_ref_from_config() -> str:
+    cfg = load_ama_config()
+    return cfg.get("user_ref") or "ama_cli"
+
+
+def format_session_line(session_id: str, user_ref: str, created_at: str) -> str:
+    return f"{session_id}\t{user_ref}\t{created_at}"
+
+
+def format_validation_errors(errors: list) -> str:
+    if not errors:
+        return "OK"
+    return "\n".join(f"  - {e.get('rule', '?')}: {e.get('message', '')}" for e in errors)
+
+
+def format_constants_table(constants: dict) -> str:
+    lines = []
+    for k, v in sorted(constants.items()):
+        lines.append(f"  {k}: {v}")
+    return "\n".join(lines) if lines else "  (none)"
+
+
+def format_methods_list(methods: list) -> str:
+    return "\n".join(f"  - {m}" for m in methods) if methods else "  (none)"
+
+
+def write_json_or_fail(obj, indent=2):
+    print(json.dumps(obj, indent=indent))
