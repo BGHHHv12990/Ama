@@ -374,3 +374,50 @@ def main_simulation_v2(platform, args):
     return 0
 
 
+def main():
+    parser = build_parser()
+    args = parser.parse_args()
+    platform = create_ariva()
+    return args.func(platform, args)
+
+
+# -----------------------------------------------------------------------------
+# Interactive mode (optional)
+# -----------------------------------------------------------------------------
+def read_input(prompt: str) -> str:
+    try:
+        return input(prompt).strip()
+    except EOFError:
+        return ""
+
+
+def run_interactive(platform):
+    """Simple interactive loop: create session, then validate/completions/suggestions."""
+    print("Ama — AriVa CLI. Commands: create, validate <code>, completions <sid> <prefix>, suggestions <sid> <query>, stats, config, quit")
+    session_id = None
+    while True:
+        line = read_input("ama> ")
+        if not line or line == "quit":
+            break
+        parts = line.split(maxsplit=1)
+        cmd = parts[0].lower()
+        rest = parts[1] if len(parts) > 1 else ""
+        if cmd == "create":
+            r = handle_ariva_request(platform, "create_session", {"user_ref": "ama_interactive", "caller": ARIVA_COORDINATOR})
+            if "error" in r:
+                print("Error:", r, file=sys.stderr)
+            else:
+                session_id = r["session_id"]
+                print("Session:", session_id)
+        elif cmd == "validate":
+            r = handle_ariva_request(platform, "validate_code", {"code": rest or "def x(): pass"})
+            print(json.dumps(r, indent=2))
+        elif cmd == "completions" and rest:
+            sid, _, prefix = (rest + "  ").partition(" ")[0], "", (rest + "  ").split(maxsplit=2)[-1].strip() or "im"
+            sid = sid or session_id
+            if not sid:
+                print("No session_id. Run create first.", file=sys.stderr)
+                continue
+            r = handle_ariva_request(platform, "get_completions", {"session_id": sid, "prefix": prefix, "line_context": prefix, "language": "py", "max_n": 5})
+            print(json.dumps(r, indent=2))
+        elif cmd == "suggestions" and rest:
