@@ -280,3 +280,50 @@ def main_reference(_platform, _args):
     print(AMA_REFERENCE.strip())
     return 0
 
+
+def build_parser():
+    p = argparse.ArgumentParser(description="Ama — AriVa code assistant CLI")
+    sub = p.add_subparsers(dest="command", required=True)
+
+    # create_session
+    c = sub.add_parser("create-session", help="Create a new session")
+    c.add_argument("--user-ref", default="", help="User reference (default from AMA config or ama_cli)")
+    c.set_defaults(func=main_create_session)
+
+    # get_session
+    g = sub.add_parser("get-session", help="Get session by id")
+    g.add_argument("session_id", help="Session ID")
+    g.set_defaults(func=main_get_session)
+
+    # close_session
+    cl = sub.add_parser("close-session", help="Close session")
+    cl.add_argument("session_id", help="Session ID")
+    cl.set_defaults(func=main_close_session)
+
+    # validate
+    v = sub.add_parser("validate", help="Validate code")
+    v.add_argument("--code", default="", help="Code string")
+    v.add_argument("--file", help="Read code from file")
+    v.add_argument("--human", action="store_true", help="Human-readable validation output")
+    v.set_defaults(func=main_validate)
+
+    # completions
+    co = sub.add_parser("completions", help="Get completions")
+    co.add_argument("session_id", help="Session ID")
+    co.add_argument("--prefix", default="", help="Prefix")
+    co.add_argument("--line-context", default="", help="Line context")
+    co.add_argument("--language", default="py", help="Language")
+    co.add_argument("--max-n", type=int, default=12, help="Max completions")
+    co.set_defaults(func=main_completions)
+
+    # suggestions
+    s = sub.add_parser("suggestions", help="Get suggestions")
+    s.add_argument("session_id", help="Session ID")
+    s.add_argument("--query", default="", help="Query")
+    s.add_argument("--kind", type=int, default=0, help="Kind 0-3")
+    s.add_argument("--max-n", type=int, default=24, help="Max suggestions")
+    s.set_defaults(func=main_suggestions)
+
+    # update_context
+    u = sub.add_parser("update-context", help="Update session context")
+    u.add_argument("session_id", help="Session ID")
