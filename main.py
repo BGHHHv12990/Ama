@@ -92,3 +92,50 @@ def format_methods_list(methods: list) -> str:
 
 def write_json_or_fail(obj, indent=2):
     print(json.dumps(obj, indent=indent))
+    return 0
+
+
+def write_error_and_exit(obj, exit_code=1):
+    print(json.dumps(obj, indent=2), file=sys.stderr)
+    return exit_code
+
+
+def main_create_session(platform, args):
+    user_ref = args.user_ref or get_user_ref_from_config()
+    caller = getattr(args, "caller", None) or get_caller_from_config()
+    r = handle_ariva_request(
+        platform,
+        "create_session",
+        {"user_ref": user_ref, "caller": caller},
+    )
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_get_session(platform, args):
+    r = handle_ariva_request(platform, "get_session", {"session_id": args.session_id})
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_close_session(platform, args):
+    r = handle_ariva_request(
+        platform,
+        "close_session",
+        {"session_id": args.session_id, "caller": ARIVA_COORDINATOR},
+    )
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_validate(platform, args):
+    code = args.code
