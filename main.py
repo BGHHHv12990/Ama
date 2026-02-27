@@ -421,3 +421,50 @@ def run_interactive(platform):
             r = handle_ariva_request(platform, "get_completions", {"session_id": sid, "prefix": prefix, "line_context": prefix, "language": "py", "max_n": 5})
             print(json.dumps(r, indent=2))
         elif cmd == "suggestions" and rest:
+            sid, _, query = (rest + "  ").partition(" ")[0], "", (rest + "  ").split(maxsplit=2)[-1].strip() or "fix"
+            sid = sid or session_id
+            if not sid:
+                print("No session_id. Run create first.", file=sys.stderr)
+                continue
+            r = handle_ariva_request(platform, "get_suggestions", {"session_id": sid, "query": query, "kind": 0, "max_n": 5})
+            print(json.dumps(r, indent=2))
+        elif cmd == "stats":
+            r = handle_ariva_request(platform, "stats", {})
+            print(json.dumps(r, indent=2))
+        elif cmd == "config":
+            r = handle_ariva_request(platform, "config", {})
+            print(json.dumps(r, indent=2))
+        else:
+            print("Unknown or incomplete command. Use create, validate, completions <sid> <prefix>, suggestions <sid> <query>, stats, config, quit")
+
+
+def main_interactive(platform, _args):
+    run_interactive(platform)
+    return 0
+
+
+# -----------------------------------------------------------------------------
+# Batch / file mode
+# -----------------------------------------------------------------------------
+def main_batch(platform, args):
+    if getattr(args, "file", None):
+        lines = Path(args.file).read_text(encoding="utf-8", errors="replace").splitlines()
+    else:
+        lines = sys.stdin.read().splitlines()
+    run_batch(platform, lines)
+    return 0
+
+
+def run_batch(platform, lines):
+    """Run a list of method calls (each line: method param1 param2 ... or JSON)."""
+    caller = get_caller_from_config()
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("{"):
+            obj = json.loads(line)
+            method = obj.get("method", "")
+            params = obj.get("params", {})
+        else:
+            parts = line.split()
