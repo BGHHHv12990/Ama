@@ -515,3 +515,46 @@ Ama CLI reference
 
 Commands:
   create-session [--user-ref REF]   Create session (user_ref from config if omitted).
+  get-session SESSION_ID            Get session by id.
+  close-session SESSION_ID          Close session.
+  validate [--code CODE] [--file PATH]  Validate code (code or file).
+  completions SESSION_ID [--prefix P] [--language L] [--max-n N]  Get completions.
+  suggestions SESSION_ID [--query Q] [--kind K] [--max-n N]  Get suggestions.
+  update-context SESSION_ID [--context C] [--file F]  Update session context.
+  stats                             Platform stats.
+  config                            Platform config (addresses, salts).
+  health                            Health check.
+  demo                              Run AriVa demo.
+  cleanup                           Cleanup stale sessions.
+  uniqueness                        Confirm addresses/hex unique.
+  constants                         List all AriVa constants.
+  methods                           List API methods.
+  templates                         Request templates JSON.
+  show-config                       Show loaded config path and effective caller/user_ref.
+  interactive                       REPL: create, validate, completions, suggestions, stats, config, quit.
+  batch [--file F]                  Run commands from file or stdin (one per line).
+  simulation [--num-sessions N]      run_ariva_simulation.
+  simulation-v2 [--num-users N]      run_ariva_simulation_v2.
+
+Config file (optional):
+  Set AMA_CONFIG to path, or use ama_config.json in cwd.
+  JSON: {"user_ref": "...", "caller_override": "0x..."}.
+
+Batch file format:
+  One command per line. Lines starting with # are skipped.
+  JSON line: {"method": "create_session", "params": {"user_ref": "u", "caller": "0x..."}}
+  Text: create_session myuser
+        validate_code def f(): pass
+        get_session SID
+        close_session SID
+        get_completions SID prefix
+        get_suggestions SID query
+        update_context SID ctx
+        stats
+        config
+"""
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+
