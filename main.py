@@ -233,3 +233,50 @@ def main_demo(platform, _args):
     r = run_ariva_demo(platform)
     print(json.dumps(r, indent=2))
     return 0
+
+
+def main_cleanup(platform, _args):
+    r = handle_ariva_request(platform, "cleanup_stale", {})
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_uniqueness(_platform, _args):
+    addrs = confirm_ariva_addresses_unique()
+    hex_ok = confirm_ariva_hex_unique()
+    print(json.dumps({"addresses_unique": addrs, "hex_unique": hex_ok}, indent=2))
+    return 0
+
+
+def main_constants(_platform, _args):
+    print(json.dumps(get_all_ariva_constants(), indent=2))
+    return 0
+
+
+def main_methods(_platform, _args):
+    print(json.dumps(list_ariva_methods(), indent=2))
+    return 0
+
+
+def main_templates(_platform, _args):
+    print(json.dumps(get_request_templates(), indent=2))
+    return 0
+
+
+def main_show_config(_platform, _args):
+    path = os.environ.get(AMA_CONFIG_ENV) or AMA_CONFIG_DEFAULT
+    cfg = load_ama_config()
+    out = {"config_path": path, "config_found": bool(cfg), "config": cfg}
+    out["effective_caller"] = get_caller_from_config()
+    out["effective_user_ref"] = get_user_ref_from_config()
+    print(json.dumps(out, indent=2))
+    return 0
+
+
+def main_reference(_platform, _args):
+    print(AMA_REFERENCE.strip())
+    return 0
+
