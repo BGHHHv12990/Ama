@@ -139,3 +139,50 @@ def main_close_session(platform, args):
 
 def main_validate(platform, args):
     code = args.code
+    if args.file:
+        code = Path(args.file).read_text(encoding="utf-8", errors="replace")
+    r = handle_ariva_request(platform, "validate_code", {"code": code})
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    if getattr(args, "human", False):
+        print_validation_human(r)
+    else:
+        print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_completions(platform, args):
+    r = handle_ariva_request(
+        platform,
+        "get_completions",
+        {
+            "session_id": args.session_id,
+            "prefix": args.prefix,
+            "line_context": args.line_context or args.prefix,
+            "language": args.language,
+            "max_n": args.max_n,
+        },
+    )
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_suggestions(platform, args):
+    r = handle_ariva_request(
+        platform,
+        "get_suggestions",
+        {
+            "session_id": args.session_id,
+            "query": args.query,
+            "kind": args.kind,
+            "max_n": args.max_n,
+        },
+    )
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
