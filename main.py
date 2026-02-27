@@ -327,3 +327,50 @@ def build_parser():
     # update_context
     u = sub.add_parser("update-context", help="Update session context")
     u.add_argument("session_id", help="Session ID")
+    u.add_argument("--context", default="", help="Context string")
+    u.add_argument("--file", help="Read context from file")
+    u.set_defaults(func=main_update_context)
+
+    # stats, config, health, demo, cleanup
+    sub.add_parser("stats", help="Show stats").set_defaults(func=main_stats)
+    sub.add_parser("config", help="Show config").set_defaults(func=main_config)
+    sub.add_parser("health", help="Health check").set_defaults(func=main_health)
+    sub.add_parser("demo", help="Run demo").set_defaults(func=main_demo)
+    sub.add_parser("cleanup", help="Cleanup stale sessions").set_defaults(func=main_cleanup)
+    sub.add_parser("uniqueness", help="Confirm addresses/hex unique").set_defaults(func=main_uniqueness)
+    sub.add_parser("constants", help="List all constants").set_defaults(func=main_constants)
+    sub.add_parser("methods", help="List API methods").set_defaults(func=main_methods)
+    sub.add_parser("templates", help="Request templates").set_defaults(func=main_templates)
+    sub.add_parser("show-config", help="Show loaded config path and effective caller/user_ref").set_defaults(func=main_show_config)
+    sub.add_parser("reference", help="Print CLI reference").set_defaults(func=main_reference)
+    sub.add_parser("interactive", help="Interactive mode").set_defaults(func=main_interactive)
+
+    batch_p = sub.add_parser("batch", help="Batch from file or stdin")
+    batch_p.add_argument("--file", help="Read commands from file (one per line)")
+    batch_p.set_defaults(func=main_batch)
+
+    sim = sub.add_parser("simulation", help="Run run_ariva_simulation")
+    sim.add_argument("--num-sessions", type=int, default=5, help="Number of sessions")
+    sim.set_defaults(func=main_simulation)
+
+    sim2 = sub.add_parser("simulation-v2", help="Run run_ariva_simulation_v2")
+    sim2.add_argument("--num-users", type=int, default=8, help="Number of users")
+    sim2.set_defaults(func=main_simulation_v2)
+
+    return p
+
+
+def main_simulation(platform, args):
+    num = getattr(args, "num_sessions", 5)
+    r = run_ariva_simulation(platform, num_sessions=num)
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_simulation_v2(platform, args):
+    num_users = getattr(args, "num_users", 8)
+    r = run_ariva_simulation_v2(platform, num_users=num_users)
+    print(json.dumps(r, indent=2))
+    return 0
+
+
