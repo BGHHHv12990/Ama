@@ -186,3 +186,50 @@ def main_suggestions(platform, args):
         print(json.dumps(r, indent=2), file=sys.stderr)
         return 1
     print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_update_context(platform, args):
+    context = args.context
+    if args.file:
+        context = Path(args.file).read_text(encoding="utf-8", errors="replace")
+    r = handle_ariva_request(
+        platform,
+        "update_context",
+        {"session_id": args.session_id, "context": context, "caller": ARIVA_COORDINATOR},
+    )
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_stats(platform, _args):
+    r = handle_ariva_request(platform, "stats", {})
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_config(platform, _args):
+    r = handle_ariva_request(platform, "config", {})
+    if "error" in r:
+        print(json.dumps(r, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_health(platform, _args):
+    r = health_check_ariva(platform)
+    print(json.dumps(r, indent=2))
+    return 0
+
+
+def main_demo(platform, _args):
+    r = run_ariva_demo(platform)
+    print(json.dumps(r, indent=2))
+    return 0
